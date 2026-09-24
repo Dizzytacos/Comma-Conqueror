@@ -193,7 +193,7 @@ const SENTENCES = [
  {w:W("Srinika the comma conqueror lords over Keerthan"),m:[{a:0,t:",",r:"appositive"},{a:3,t:",",r:"appositive"}]},
  {w:W("After I walk to the store I will go to Casa Jag"),m:[{a:5,t:",",r:"advclause"}]},
  {w:W("Teddy Roosevelt Mr Sherwin's favorite president lived until sixty"),m:[{a:1,t:",",r:"appositive"},{a:5,t:",",r:"appositive"}]},
- {w:W("I will have the fish special my date the steak"),m:[{a:6,t:";",r"elliptical"},{a:7,t:",",r:"elliptical"}]}
+ {w:W("I will have the fish special my date the steak"),m:[{a:6,t:";",r:"elliptical"},{a:7,t:",",r:"elliptical"}]}
 ];
 let pool=[], idx=0, depth=1, streak=0, correctTotal=0, expectedTotal=0, best=0, gapState=[], locked=false;
 try{best=parseInt(localStorage.getItem('ck_best')||'0');}catch(e){best=0;}
@@ -284,17 +284,17 @@ function grade(){
     const found = placed.find(p=>p.i===exp.a && p.type===exp.t);
     const rule=RULES[exp.r];
     if(found){
-      const ok = rule.keys.some(k=>norm(found.reason).includes(k)) || norm(found.reason).length>2 && norm(found.reason)===norm(rule.name);
+      const ok = rule ? (rule.keys.some(k=>norm(found.reason).includes(k)) || norm(found.reason).length>2 && norm(found.reason)===norm(rule.name)) : false;
       if(ok){
         correctTotal++;
-        items.push({ok:true,html:'<b>Correct</b> — '+(exp.t===';'?'semicolon':'comma')+' after "'+s.w[exp.a]+'": <i>'+rule.name+'</i><div class="explain">'+rule.explain+'</div>'});
+        items.push({ok:true,html:'<b>Correct</b> — '+(exp.t===';'?'semicolon':'comma')+' after "'+s.w[exp.a]+'": <i>'+(rule?rule.name:'')+'</i><div class="explain">'+(rule?rule.explain:'')+'</div>'});
       } else {
         roomCorrect=false;
-        items.push({ok:false,html:'Right spot, wrong reason for the '+(exp.t===';'?'semicolon':'comma')+' after "'+s.w[exp.a]+'". The rule is <b>'+rule.name+'</b>.<div class="explain">'+rule.explain+'</div>'});
+        items.push({ok:false,html:'Right spot, wrong reason for the '+(exp.t===';'?'semicolon':'comma')+' after "'+s.w[exp.a]+'". The rule is <b>'+(rule?rule.name:'')+'</b>.<div class="explain">'+(rule?rule.explain:'')+'</div>'});
       }
     } else {
       roomCorrect=false;
-      items.push({ok:false,html:'Missed it — a '+(exp.t===';'?'semicolon':'comma')+' belongs after "'+s.w[exp.a]+'". Rule: <b>'+rule.name+'</b>.<div class="explain">'+rule.explain+'</div>'});
+      items.push({ok:false,html:'Missed it — a '+(exp.t===';'?'semicolon':'comma')+' belongs after "'+s.w[exp.a]+'". Rule: <b>'+(rule?rule.name:'')+'</b>.<div class="explain">'+(rule?rule.explain:'')+'</div>'});
     }
   });
   placed.forEach(p=>{
