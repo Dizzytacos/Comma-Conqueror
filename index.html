@@ -183,13 +183,17 @@ const SENTENCES = [
  {w:W("Excited and laughing with her friends the little girl blew bubbles into the wind"),m:[{a:5,t:",",r:"intropart"}]},
  {w:W("By washing the car you are showing you are responsible"),m:[{a:3,t:",",r:"introgerund"}]},
  {w:W("To help with studying you should complete your grammar sheets"),m:[{a:3,t:",",r:"introinf"}]},
- {w:W("In the flowered chair in the living room the pillows look old and tired"),m:[{a:7,t:",",r:"prepphrase"}]},
+ {w:W("On the flowered chair in the living room the pillows look old and tired"),m:[{a:7,t:",",r:"prepphrase"}]},
  {w:W("In the yard rabbits are destroying our flower beds"),m:[]},
  {w:W("After Elizabeth Blackwell became the first woman physician in the United States she founded a medical college"),m:[{a:11,t:",",r:"advclause"}]},
  {w:W("Someday my ship will come in"),m:[{a:0,t:",",r:"advmodal"}]},
  {w:W("Gracious you have so many books"),m:[{a:0,t:",",r:"interjection"}]},
  {w:W("Mr Adams my teacher is having surgery"),m:[{a:1,t:",",r:"appositive"},{a:3,t:",",r:"appositive"}]},
  {w:W("An eighteen-year-old in California is now considered an adult"),m:[]}
+ {w:W("Srinika the comma conqueror lords over Keerthan"),m:[{a:0,t:",",r:"appositive"},{a:3,t:",",r:"appositive"}]},
+ {w:W("After I walk to the store I will go to Casa Jag"),m:[{a:5,t:",",r:"advclause"}]},
+ {w:W("Teddy Roosevelt Mr Sherwin's favorite president lived until sixty"),m:[{a:1,t:",",r:"appositive"}{a:5,t:",",r:"appositive"}]},
+ {w:W("I will have the fish special my date the steak"),m:[{a:5,t:";",r"elliptical"}{a:7,t:",",r:"elliptical"}]},
 ];
 let pool=[], idx=0, depth=1, streak=0, correctTotal=0, expectedTotal=0, best=0, gapState=[], locked=false;
 try{best=parseInt(localStorage.getItem('ck_best')||'0');}catch(e){best=0;}
