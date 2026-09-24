@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Comma Dungeon: The Unnamed Knight</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --stone-dark:#151009; --stone-mid:#2b2118; --stone-light:#4a3a29;
+  --torch:#e8983a; --torch-hot:#ffb84d; --parchment:#ecdfc0; --parchment-dim:#c9b98f;
+  --blood:#c1443a; --moss:#7fa858; --gold:#d4af37;
+  --font-pixel:'Press Start 2P',monospace; --font-body:'IM Fell English',serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+html,body{height:100%;}
+body{
+  margin:0; background:var(--stone-dark);
+  background-image:
+    repeating-linear-gradient(0deg,rgba(0,0,0,.35) 0 2px,transparent 2px 34px),
+    repeating-linear-gradient(90deg,rgba(0,0,0,.25) 0 2px,transparent 2px 54px);
+  color:var(--parchment); font-family:var(--font-body); font-size:19px;
+  display:flex; justify-content:center; padding:18px 12px 40px;
+}
+.wrap{width:100%; max-width:720px;}
+.title{
+  font-family:var(--font-pixel); font-size:15px; text-align:center; color:var(--gold);
+  text-shadow:2px 2px 0 #000; letter-spacing:1px; line-height:1.8; margin-bottom:4px;
+}
+.torches{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:6px;}
+.pixel-torch:first-child{margin-left:-30px;}
+.pixel-torch:last-child{margin-right:-10px;}
+.pixel-torch{
+  width:4px; height:4px; background:transparent; image-rendering:pixelated;
+  filter:drop-shadow(0 0 5px var(--torch)); animation:flicker 1.1s steps(2) infinite;
+  box-shadow:
+    12px 0 0 #fff2b0,
+    8px 4px 0 #ffb84d, 12px 4px 0 #fff2b0, 16px 4px 0 #ffb84d,
+    8px 8px 0 #ff6a3d, 12px 8px 0 #ffb84d, 16px 8px 0 #ff6a3d,
+    4px 12px 0 #ff6a3d, 8px 12px 0 #ffb84d, 12px 12px 0 #ffb84d, 16px 12px 0 #ffb84d, 20px 12px 0 #ff6a3d,
+    4px 16px 0 #c1443a, 8px 16px 0 #ff6a3d, 12px 16px 0 #ffb84d, 16px 16px 0 #ff6a3d, 20px 16px 0 #c1443a,
+    8px 20px 0 #c1443a, 12px 20px 0 #ff6a3d, 16px 20px 0 #c1443a,
+    8px 24px 0 #8a5a1a, 12px 24px 0 #d4af37, 16px 24px 0 #8a5a1a,
+    8px 28px 0 #5a3a22, 12px 28px 0 #5a3a22, 16px 28px 0 #5a3a22,
+    12px 32px 0 #4a3a29,
+    12px 36px 0 #4a3a29,
+    12px 40px 0 #2b2118,
+    8px 44px 0 #151009, 12px 44px 0 #151009, 16px 44px 0 #151009;
+}
+@keyframes flicker{
+  0%{filter:drop-shadow(0 0 5px var(--torch)) brightness(1);}
+  50%{filter:drop-shadow(0 0 8px var(--torch-hot)) brightness(1.12);}
+  100%{filter:drop-shadow(0 0 4px var(--torch)) brightness(.94);}
+}
+.statbar{
+  font-family:var(--font-pixel); font-size:9px; color:var(--parchment-dim);
+  display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px; margin-bottom:14px;
+  background:var(--stone-mid); border:3px solid var(--stone-light); padding:8px 10px;
+}
+.panel{
+  background:var(--stone-mid); border:4px solid var(--stone-light); box-shadow:0 0 0 3px #000 inset,0 6px 0 #000;
+  padding:20px 18px; margin-bottom:14px;
+}
+.room-label{font-family:var(--font-pixel); font-size:10px; color:var(--torch); margin-bottom:12px;}
+.sentence{font-size:23px; line-height:2.3; color:var(--parchment);}
+.gap{
+  display:inline-flex; align-items:flex-end; justify-content:center; width:18px; height:1.4em;
+  cursor:pointer; position:relative; user-select:none; vertical-align:bottom;
+  touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+  border-bottom:2px dotted rgba(232,220,192,.3); margin:0 1px;
+}
+.gap:hover{background:rgba(212,175,55,.25);}
+.gap:after{content:'';}
+.gap.has-comma{border-bottom-color:transparent;}
+.gap.has-comma:after{content:',';color:var(--gold);font-weight:bold;font-size:1.3em;}
+.gap.has-semi{border-bottom-color:transparent;}
+.gap.has-semi:after{content:';';color:var(--gold);font-weight:bold;font-size:1.3em;}
+.gap.locked{cursor:default; pointer-events:none; border-bottom-style:solid;}
+.reasons{margin-top:14px;}
+.reason-row{
+  font-family:var(--font-body); font-size:15px; color:var(--parchment-dim);
+  margin:6px 0; display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+}
+.reason-row input{
+  flex:1; min-width:160px; background:#0f0c08; border:2px solid var(--stone-light); color:var(--parchment);
+  font-family:var(--font-body); font-size:15px; padding:5px 8px;
+}
+.reason-row input:focus{outline:2px solid var(--torch);}
+.btnrow{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;}
+button.mainbtn{
+  font-family:var(--font-pixel); font-size:11px; background:var(--torch); color:#1a1410;
+  border:none; padding:12px 16px; cursor:pointer; box-shadow:0 4px 0 #8a5a1a;
+}
+button.mainbtn:active{transform:translateY(3px); box-shadow:0 1px 0 #8a5a1a;}
+button.mainbtn.ghost{background:var(--stone-light); color:var(--parchment); box-shadow:0 4px 0 #000;}
+.hint{font-size:14px; color:var(--parchment-dim); margin-top:10px;}
+.feedback{margin-top:16px; border-top:2px dashed var(--stone-light); padding-top:14px;}
+.fitem{margin-bottom:12px; padding:10px 12px; border-left:4px solid var(--stone-light); background:rgba(0,0,0,.2);}
+.fitem.ok{border-color:var(--moss);}
+.fitem.bad{border-color:var(--blood);}
+.fitem b{color:var(--gold); font-family:var(--font-body);}
+.fmark{font-family:var(--font-pixel); font-size:10px; margin-right:6px;}
+.fmark.ok{color:var(--moss);}
+.fmark.bad{color:var(--blood);}
+.explain{font-size:15px; color:var(--parchment-dim); margin-top:4px;}
+.dots{letter-spacing:3px; font-size:13px;}
+.dots span{color:#4a3a29;}
+.dots span.done{color:var(--gold);}
+.big-ok{color:var(--moss); font-family:var(--font-pixel); font-size:12px;}
+@media (max-width:480px){.sentence{font-size:19px;} .title{font-size:12px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="title">⚔ COMMA DUNGEON ⚔</div>
+  <div class="torches"><div class="pixel-torch"></div><div class="pixel-torch"></div></div>
+  <div class="statbar">
+    <span id="stDepth">ROOM 1</span>
+    <span id="stStreak">STREAK 0</span>
+    <span id="stAcc">ACCURACY 100%</span>
+    <span id="stBest">BEST 0</span>
+  </div>
+  <div class="panel">
+    <div class="room-label" id="roomLabel">THE KNIGHT ENTERS A NEW CHAMBER...</div>
+    <div class="sentence" id="sentence"></div>
+    <div class="reasons" id="reasons"></div>
+    <div class="hint">Tap a dotted gap to cycle: comma → semicolon → none. (On desktop, right-click jumps straight to semicolon.) If the sentence needs no punctuation, submit it blank.</div>
+    <div class="btnrow">
+      <button class="mainbtn" id="submitBtn">SUBMIT</button>
+      <button class="mainbtn ghost" id="nextBtn" style="display:none;">NEXT ROOM →</button>
+    </div>
+    <div class="feedback" id="feedback" style="display:none;"></div>
+  </div>
+  <div class="dots" id="dots"></div>
+</div>
+<script>
+const RULES = {
+  fanboys:{name:"Coordinating Conjunction (FANBOYS)",explain:"Two independent clauses joined by and/or/nor/but/for/so/yet need a comma before the conjunction.",keys:["fanboys","coord","independent clause","compound sent"]},
+  semicolon:{name:"Semicolon + Conjunctive Adverb",explain:"Two independent clauses joined by a conjunctive adverb (however, therefore...) need: clause + semicolon + adverb + comma + clause.",keys:["semicolon","conjunctive adverb",";"]},
+  series:{name:"Series (Oxford Comma)",explain:"Items in a series always get a comma between them, including the Oxford comma before the final and/or.",keys:["series","oxford","list"]},
+  coordadj:{name:"Coordinate Adjectives",explain:"Adjectives that could be reversed or joined with 'and' are coordinate and need commas between them.",keys:["coord adj","coordinate"]},
+  contrast:{name:"Contrasted Elements",explain:"A contrasting word/phrase (not, merely, yet, even) is set off with a comma.",keys:["contrast"]},
+  directaddress:{name:"Noun of Direct Address",explain:"When a sentence speaks directly TO a person, their name/title is set off with a comma.",keys:["direct address","address"]},
+  interjection:{name:"Mild Interjection",explain:"A mild interjection (yes, oh, gracious...) is set off from the rest of the sentence with a comma.",keys:["interjection"]},
+  tag:{name:"Tag Question",explain:"A tag question added to the end of a statement is set off with a comma.",keys:["tag question","tag"]},
+  dialogue:{name:"Separate Speaker from Dialogue",explain:"A comma separates a speaker tag (she said, John answered) from the quotation itself.",keys:["dialogue","speaker","quote"]},
+  elliptical:{name:"Elliptical Construction",explain:"A comma marks the spot where words are omitted but understood from the earlier clause.",keys:["elliptical","omit"]},
+  inverted:{name:"Inverted Word Order",explain:"When a word/phrase (often an -ing opener) is moved out of its normal order for emphasis, a comma follows it.",keys:["inverted","emphasis"]},
+  date:{name:"Dates",explain:"Commas separate the day from the year, and the year from the rest of the sentence (day-of-week/month, day-of-month, year all get commas around them).",keys:["date"]},
+  citystate:{name:"City and State",explain:"A comma separates a city from its state, and another follows the state.",keys:["city","state","geographical location","geographic location"]},
+  title:{name:"Title Following a Name",explain:"A title like M.D., Ph.D., or Jr. is set off with commas on both sides.",keys:["title"]},
+  intropart:{name:"Introductory Participle Phrase",explain:"An opening participle phrase (verb+ing or verb+ed describing the subject) is followed by a comma.",keys:["participle","intro part"]},
+  introgerund:{name:"Introductory Gerund Phrase",explain:"An opening gerund phrase (object of a preposition, verb+ing acting as a noun) is followed by a comma.",keys:["gerund","intro gerund"]},
+  introinf:{name:"Introductory Infinitive Phrase",explain:"An opening infinitive phrase (to + verb, showing purpose) is followed by a comma.",keys:["infinitive","intro inf"]},
+  prepphrase:{name:"Long Introductory Prepositional Phrase",explain:"A prepositional phrase (or stack of them) of four or more words at the start of a sentence gets ONE comma at the very end of it.",keys:["prep","prepositional"]},
+  advclause:{name:"Introductory Adverb Clause",explain:"An opening adverb clause (starting with after, because, when, since, while...) is followed by a comma.",keys:["adverb clause","intro adverb clause"]},
+  advmodal:{name:"Introductory Adverb (Modal)",explain:"An opening single adverb or short adverbial opener (someday, the day after tomorrow) is followed by a comma.",keys:["adverb modal","intro adverb"]},
+  appositive:{name:"Nonrestrictive Appositive/Parenthetical",explain:"A nonrestrictive appositive or parenthetical (extra, non-essential info renaming a noun) is set off with commas on both sides.",keys:["appositive","nonrestrictive","parenthetic"]}
+};
+function W(s){return s.split(" ");}
+const SENTENCES = [
+ {w:W("The recent graduate from Louisiana Tech has applied for the new position and she has good experience and people skills"),m:[{a:11,t:",",r:"fanboys"}]},
+ {w:W("I am going to hire her because she is good with people and she has the experience we need"),m:[]},
+ {w:W("We also had a male applicant for the new position however his salary requirements were too high"),m:[{a:9,t:";",r:"semicolon"},{a:10,t:",",r:"semicolon"}]},
+ {w:W("She was making spaghetti and meatballs salad and roasted vegetables for the family"),m:[{a:5,t:",",r:"series"},{a:6,t:",",r:"series"}]},
+ {w:W("He was a committed hard-working experienced tennis player"),m:[{a:3,t:",",r:"coordadj"},{a:4,t:",",r:"coordadj"}]},
+ {w:W("The speaker seemed innocent even gullible"),m:[{a:3,t:",",r:"contrast"}]},
+ {w:W("Yes baby you are the best"),m:[{a:0,t:",",r:"interjection"},{a:1,t:",",r:"directaddress"}]},
+ {w:W("You are planning on leaving school early today aren't you Jill"),m:[{a:7,t:",",r:"tag"},{a:9,t:",",r:"directaddress"}]},
+ {w:W("John said without emotion I'll see you tomorrow"),m:[{a:3,t:",",r:"dialogue"}]},
+ {w:W("Tom scored ninety points; Jake seventy points"),m:[{a:4,t:",",r:"elliptical"}]},
+ {w:W("Screaming the girl ran out of the haunted house"),m:[{a:0,t:",",r:"inverted"}]},
+ {w:W("The story was in the Sun's June 5 2003 edition"),m:[{a:7,t:",",r:"date"},{a:8,t:",",r:"date"}]},
+ {w:W("In 1492 Columbus sailed the ocean blue"),m:[{a:1,t:",",r:"date"}]},
+ {w:W("He was born in Shreveport Louisiana before the city had running water"),m:[{a:4,t:",",r:"citystate"},{a:5,t:",",r:"citystate"}]},
+ {w:W("Rachel Lake MD will be the principal speaker"),m:[{a:1,t:",",r:"title"},{a:2,t:",",r:"title"}]},
+ {w:W("Excited and laughing with her friends the little girl blew bubbles into the wind"),m:[{a:5,t:",",r:"intropart"}]},
+ {w:W("By washing the car you are showing you are responsible"),m:[{a:3,t:",",r:"introgerund"}]},
+ {w:W("To help with studying you should complete your grammar sheets"),m:[{a:3,t:",",r:"introinf"}]},
+ {w:W("In the flowered chair in the living room the pillows look old and tired"),m:[{a:7,t:",",r:"prepphrase"}]},
+ {w:W("In the yard rabbits are destroying our flower beds"),m:[]},
+ {w:W("After Elizabeth Blackwell became the first woman physician in the United States she founded a medical college"),m:[{a:11,t:",",r:"advclause"}]},
+ {w:W("Someday my ship will come in"),m:[{a:0,t:",",r:"advmodal"}]},
+ {w:W("Gracious you have so many books"),m:[{a:0,t:",",r:"interjection"}]},
+ {w:W("Mr Adams my teacher is having surgery"),m:[{a:1,t:",",r:"appositive"},{a:3,t:",",r:"appositive"}]},
+ {w:W("An eighteen-year-old in California is now considered an adult"),m:[]}
+];
+let pool=[], idx=0, depth=1, streak=0, correctTotal=0, expectedTotal=0, best=0, gapState=[], locked=false;
+try{best=parseInt(localStorage.getItem('ck_best')||'0');}catch(e){best=0;}
+function shuffle(a){a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a;}
+function norm(s){return (s||"").toLowerCase().replace(/[^a-z ]/g,"").trim();}
+function newPool(){pool=shuffle(SENTENCES); idx=0;}
+newPool();
+function currentSentence(){return pool[idx];}
+function renderRoom(){
+  locked=false;
+  const s=currentSentence();
+  gapState=s.w.map(()=>({type:null,reason:""}));
+  document.getElementById('feedback').style.display='none';
+  document.getElementById('nextBtn').style.display='none';
+  document.getElementById('submitBtn').style.display='inline-block';
+  document.getElementById('submitBtn').disabled=false;
+  document.getElementById('roomLabel').textContent = s.m.length ? "THE KNIGHT ENTERS A NEW CHAMBER..." : "A QUIET CHAMBER... OR IS IT A TRAP?";
+  buildSentenceDOM();
+  document.getElementById('reasons').innerHTML="";
+  updateStats();
+}
+function buildSentenceDOM(){
+  const s=currentSentence();
+  const el=document.getElementById('sentence');
+  el.innerHTML="";
+  s.w.forEach((word,i)=>{
+    el.appendChild(document.createTextNode(word));
+    const gap=document.createElement('span');
+    gap.className='gap'; gap.dataset.i=i;
+    gap.addEventListener('click',()=>cycleGap(i));
+    gap.addEventListener('contextmenu',(e)=>{e.preventDefault(); jumpToSemi(i);});
+    el.appendChild(gap);
+    if(i<s.w.length-1) el.appendChild(document.createTextNode(" "));
+  });
+  el.appendChild(document.createTextNode("."));
+}
+function cycleGap(i){
+  if(locked) return;
+  const g=gapState[i];
+  g.type = g.type===null ? ',' : g.type===',' ? ';' : null;
+  refreshGapVisual(i);
+  rebuildReasonInputs();
+}
+function jumpToSemi(i){
+  if(locked) return;
+  const g=gapState[i];
+  g.type = g.type===';' ? null : ';';
+  refreshGapVisual(i);
+  rebuildReasonInputs();
+}
+function refreshGapVisual(i){
+  const el=document.querySelector('.gap[data-i="'+i+'"]');
+  if(!el) return;
+  el.classList.remove('has-comma','has-semi');
+  if(gapState[i].type===',') el.classList.add('has-comma');
+  if(gapState[i].type===';') el.classList.add('has-semi');
+}
+function rebuildReasonInputs(){
+  const s=currentSentence();
+  const box=document.getElementById('reasons');
+  box.innerHTML="";
+  gapState.forEach((g,i)=>{
+    if(!g.type) return;
+    const row=document.createElement('div'); row.className='reason-row';
+    const label=document.createElement('span');
+    label.textContent=(g.type===';'?'Semicolon':'Comma')+" after \""+s.w[i]+"\" — why?";
+    const input=document.createElement('input'); input.type='text'; input.placeholder='e.g. Intro gerund phrase';
+    input.value=g.reason; input.addEventListener('input',()=>{g.reason=input.value;});
+    row.appendChild(label); row.appendChild(input); box.appendChild(row);
+  });
+}
+document.getElementById('submitBtn').addEventListener('click',grade);
+document.getElementById('nextBtn').addEventListener('click',()=>{
+  idx++; depth++;
+  if(idx>=pool.length){ newPool(); document.getElementById('roomLabel').textContent="THE DUNGEON SHIFTS AND RESHAPES ITSELF...";}
+  renderRoom();
+});
+function grade(){
+  locked=true;
+  const s=currentSentence();
+  document.querySelectorAll('.gap').forEach(g=>g.classList.add('locked'));
+  document.querySelectorAll('.reason-row input').forEach(i=>i.disabled=true);
+  const placed = gapState.map((g,i)=>({i,type:g.type,reason:g.reason})).filter(g=>g.type);
+  const expected = s.m;
+  let items=[]; let roomCorrect=true; let anyExpected=expected.length>0;
+  expected.forEach(exp=>{
+    expectedTotal++;
+    const found = placed.find(p=>p.i===exp.a && p.type===exp.t);
+    const rule=RULES[exp.r];
+    if(found){
+      const ok = rule.keys.some(k=>norm(found.reason).includes(k)) || norm(found.reason).length>2 && norm(found.reason)===norm(rule.name);
+      if(ok){
+        correctTotal++;
+        items.push({ok:true,html:'<b>Correct</b> — '+(exp.t===';'?'semicolon':'comma')+' after "'+s.w[exp.a]+'": <i>'+rule.name+'</i><div class="explain">'+rule.explain+'</div>'});
+      } else {
+        roomCorrect=false;
+        items.push({ok:false,html:'Right spot, wrong reason for the '+(exp.t===';'?'semicolon':'comma')+' after "'+s.w[exp.a]+'". The rule is <b>'+rule.name+'</b>.<div class="explain">'+rule.explain+'</div>'});
+      }
+    } else {
+      roomCorrect=false;
+      items.push({ok:false,html:'Missed it — a '+(exp.t===';'?'semicolon':'comma')+' belongs after "'+s.w[exp.a]+'". Rule: <b>'+rule.name+'</b>.<div class="explain">'+rule.explain+'</div>'});
+    }
+  });
+  placed.forEach(p=>{
+    const match = expected.find(e=>e.a===p.i && e.t===p.type);
+    if(!match){
+      roomCorrect=false; expectedTotal++;
+      items.push({ok:false,html:'No punctuation belongs after "'+s.w[p.i]+'" — that mark should be removed.'});
+    }
+  });
+  if(!anyExpected && placed.length===0){
+    items.push({ok:true,html:'<b>Correct!</b> This sentence needs no comma or semicolon at all.'});
+    correctTotal++; expectedTotal++;
+  }
+  streak = roomCorrect ? streak+1 : 0;
+  if(depth>best){best=depth; try{localStorage.setItem('ck_best',String(best));}catch(e){}}
+  const fb=document.getElementById('feedback');
+  fb.style.display='block';
+  fb.innerHTML = (roomCorrect?'<div class="big-ok">⚔ ROOM CLEARED ⚔</div>':'<div class="big-ok" style="color:var(--blood)">THE KNIGHT STUMBLES...</div>') +
+    items.map(it=>'<div class="fitem '+(it.ok?'ok':'bad')+'"><span class="fmark '+(it.ok?'ok':'bad')+'">'+(it.ok?'✓':'✕')+'</span>'+it.html+'</div>').join("");
+  document.getElementById('submitBtn').style.display='none';
+  document.getElementById('nextBtn').style.display='inline-block';
+  updateStats();
+}
+function updateStats(){
+  document.getElementById('stDepth').textContent='ROOM '+depth;
+  document.getElementById('stStreak').textContent='STREAK '+streak;
+  const acc = expectedTotal? Math.round(100*correctTotal/expectedTotal):100;
+  document.getElementById('stAcc').textContent='ACCURACY '+acc+'%';
+  document.getElementById('stBest').textContent='BEST '+best;
+  const dotsN=Math.min(pool.length,20);
+  let dots='';
+  for(let i=0;i<dotsN;i++){dots+='<span class="'+(i<idx?'done':'')+'">⚔</span>';}
+  document.getElementById('dots').innerHTML=dots;
+}
+renderRoom();
+</script>
+</body>
+</html>
