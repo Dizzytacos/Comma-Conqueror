@@ -172,14 +172,14 @@ const SENTENCES = [
  {w:W("The speaker seemed innocent even gullible"),m:[{a:3,t:",",r:"contrast"}]},
  {w:W("Yes baby you are the best"),m:[{a:0,t:",",r:"interjection"},{a:1,t:",",r:"directaddress"}]},
  {w:W("You are planning on leaving school early today aren't you Jill"),m:[{a:7,t:",",r:"tag"},{a:9,t:",",r:"directaddress"}]},
- {w:W("John said without emotion I'll see you tomorrow"),m:[{a:3,t:",",r:"dialogue"}]},
+ {w:W("John said without emotion \"I'll see you tomorrow\""),m:[{a:3,t:",",r:"dialogue"}]},
  {w:W("Tom scored ninety points; Jake seventy points"),m:[{a:4,t:",",r:"elliptical"}]},
  {w:W("Screaming the girl ran out of the haunted house"),m:[{a:0,t:",",r:"intropart"}]},
  {w:W("Angry he was"),m:[{a:0,t:",",r:"inverted"}]},
  {w:W("The story was in the Sun's June 5 2003 edition"),m:[{a:7,t:",",r:"date"},{a:8,t:",",r:"date"}]},
  {w:W("In 1492 Columbus sailed the ocean blue"),m:[{a:1,t:",",r:"date"}]},
  {w:W("He was born in Shreveport Louisiana before the city had running water"),m:[{a:4,t:",",r:"citystate"},{a:5,t:",",r:"citystate"}]},
- {w:W("Rachel Lake MD will be the principal speaker"),m:[{a:1,t:",",r:"title"},{a:2,t:",",r:"title"}]},
+ {w:W("Rachel Lake M.D. will be the principal speaker"),m:[{a:1,t:",",r:"title"},{a:2,t:",",r:"title"}]},
  {w:W("Excited and laughing with her friends the little girl blew bubbles into the wind"),m:[{a:5,t:",",r:"intropart"}]},
  {w:W("By washing the car you are showing you are responsible"),m:[{a:3,t:",",r:"introgerund"}]},
  {w:W("To help with studying you should complete your grammar sheets"),m:[{a:3,t:",",r:"introinf"}]},
@@ -194,7 +194,7 @@ const SENTENCES = [
  {w:W("After I walk to the store I will go to Casa Jag"),m:[{a:5,t:",",r:"advclause"}]},
  {w:W("Teddy Roosevelt Mr Sherwin's favorite president lived until sixty"),m:[{a:1,t:",",r:"appositive"},{a:5,t:",",r:"appositive"}]},
  {w:W("I will have the fish special my date the steak"),m:[{a:5,t:";",r:"elliptical"},{a:7,t:",",r:"elliptical"}]},
- {w:W("Ready to jump off a cliff Keerthan was excited to skydive"),m:[{a:5,t:",",r:"intropart"}]}
+ {w:W("Itching to jump off a cliff Keerthan was excited to skydive"),m:[{a:5,t:",",r:"intropart"}]}
 ];
 let pool=[], idx=0, depth=1, streak=0, correctTotal=0, expectedTotal=0, best=0, gapState=[], locked=false;
 try{best=parseInt(localStorage.getItem('ck_best')||'0');}catch(e){best=0;}
@@ -229,7 +229,8 @@ function buildSentenceDOM(){
     el.appendChild(gap);
     if(i<s.w.length-1) el.appendChild(document.createTextNode(" "));
   });
-  el.appendChild(document.createTextNode("."));
+  const lastWord = s.w[s.w.length-1];
+  if(!/[.!?]["')]?$/.test(lastWord)) el.appendChild(document.createTextNode("."));
 }
 function cycleGap(i){
   if(locked) return;
