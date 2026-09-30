@@ -162,6 +162,7 @@ const RULES = {
   advmodal:{name:"Introductory Adverb (Modal)",explain:"An opening single adverb or short adverbial opener (someday, the day after tomorrow) is followed by a comma.",keys:["adverb modal","intro adverb"]},
   appositive:{name:"Nonrestrictive Appositive/Parenthetical",explain:"A nonrestrictive appositive or parenthetical (extra, non-essential info renaming a noun) is set off with commas on both sides.",keys:["appositive","nonrestrictive","parenthetic"]}
 };
+  function ruleList(r){ return (Array.isArray(r)?r:[r]).map(k=>RULES[k]).filter(Boolean); }
 function W(s){return s.split(" ");}
 const SENTENCES = [
  {w:W("The recent graduate from Louisiana Tech has applied for the new position and she has good experience and people skills"),m:[{a:11,t:",",r:"fanboys"}]},
@@ -273,30 +274,24 @@ document.getElementById('nextBtn').addEventListener('click',()=>{
   if(idx>=pool.length){ newPool(); document.getElementById('roomLabel').textContent="THE DUNGEON SHIFTS AND RESHAPES ITSELF...";}
   renderRoom();
 });
-function grade(){
-  locked=true;
-  const s=currentSentence();
-  document.querySelectorAll('.gap').forEach(g=>g.classList.add('locked'));
-  document.querySelectorAll('.reason-row input').forEach(i=>i.disabled=true);
-  const placed = gapState.map((g,i)=>({i,type:g.type,reason:g.reason})).filter(g=>g.type);
-  const expected = s.m;
-  let items=[]; let roomCorrect=true; let anyExpected=expected.length>0;
-  expected.forEach(exp=>{
+expected.forEach(exp=>{
     expectedTotal++;
     const found = placed.find(p=>p.i===exp.a && p.type===exp.t);
-    const rule=RULES[exp.r];
+    const rules = ruleList(exp.r);
+    const ruleName = rules.map(r=>r.name).join(' or ');
+    const ruleExplain = rules.map(r=>r.explain).join(' ');
     if(found){
-      const ok = rule ? (rule.keys.some(k=>norm(found.reason).includes(k)) || norm(found.reason).length>2 && norm(found.reason)===norm(rule.name)) : false;
+      const ok = rules.some(rule => rule.keys.some(k=>norm(found.reason).includes(k)) || (norm(found.reason).length>2 && norm(found.reason)===norm(rule.name)));
       if(ok){
         correctTotal++;
-        items.push({ok:true,html:'<b>Correct</b> — '+(exp.t===';'?'semicolon':'comma')+' after "'+s.w[exp.a]+'": <i>'+(rule?rule.name:'')+'</i><div class="explain">'+(rule?rule.explain:'')+'</div>'});
+        items.push({ok:true,html:'<b>Correct</b> — '+(exp.t===';'?'semicolon':'comma')+' after "'+s.w[exp.a]+'": <i>'+ruleName+'</i><div class="explain">'+ruleExplain+'</div>'});
       } else {
         roomCorrect=false;
-        items.push({ok:false,html:'Right spot, wrong reason for the '+(exp.t===';'?'semicolon':'comma')+' after "'+s.w[exp.a]+'". The rule is <b>'+(rule?rule.name:'')+'</b>.<div class="explain">'+(rule?rule.explain:'')+'</div>'});
+        items.push({ok:false,html:'Right spot, wrong reason for the '+(exp.t===';'?'semicolon':'comma')+' after "'+s.w[exp.a]+'". The rule is <b>'+ruleName+'</b>.<div class="explain">'+ruleExplain+'</div>'});
       }
     } else {
       roomCorrect=false;
-      items.push({ok:false,html:'Missed it — a '+(exp.t===';'?'semicolon':'comma')+' belongs after "'+s.w[exp.a]+'". Rule: <b>'+(rule?rule.name:'')+'</b>.<div class="explain">'+(rule?rule.explain:'')+'</div>'});
+      items.push({ok:false,html:'Missed it — a '+(exp.t===';'?'semicolon':'comma')+' belongs after "'+s.w[exp.a]+'". Rule: <b>'+ruleName+'</b>.<div class="explain">'+ruleExplain+'</div>'});
     }
   });
   placed.forEach(p=>{
