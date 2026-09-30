@@ -283,7 +283,15 @@ document.getElementById('nextBtn').addEventListener('click',()=>{
   if(idx>=pool.length){ newPool(); document.getElementById('roomLabel').textContent="THE DUNGEON SHIFTS AND RESHAPES ITSELF...";}
   renderRoom();
 });
-expected.forEach(exp=>{
+  function grade(){
+  locked=true;
+  const s=currentSentence();
+  document.querySelectorAll('.gap').forEach(g=>g.classList.add('locked'));
+  document.querySelectorAll('.reason-row input').forEach(i=>i.disabled=true);
+  const placed = gapState.map((g,i)=>({i,type:g.type,reason:g.reason})).filter(g=>g.type);
+  const expected = s.m;
+  let items=[]; let roomCorrect=true; let anyExpected=expected.length>0;
+  expected.forEach(exp=>{
     expectedTotal++;
     const found = placed.find(p=>p.i===exp.a && p.type===exp.t);
     const rules = ruleList(exp.r);
