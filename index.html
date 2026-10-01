@@ -145,7 +145,7 @@ const RULES = {
   series:{name:"Series (Oxford Comma)",explain:"Items in a series always get a comma between them, including the Oxford comma before the final and/or.",keys:["series","oxford","list"]},
   coordadj:{name:"Coordinate Adjectives",explain:"Adjectives that could be reversed or joined with 'and' are coordinate and need commas between them.",keys:["coord adj","coordinate"]},
   contrast:{name:"Contrasted Elements",explain:"A contrasting word/phrase (not, merely, yet, even) is set off with a comma.",keys:["contrast"]},
-  directaddress:{name:"Noun of Direct Address",explain:"When a sentence speaks directly TO a person, their name/title is set off with a comma.",keys:["direct address","address"]},8
+  directaddress:{name:"Noun of Direct Address",explain:"When a sentence speaks directly TO a person, their name/title is set off with a comma.",keys:["direct address","address"]},
   interjection:{name:"Mild Interjection",explain:"A mild interjection (yes, oh, gracious...) is set off from the rest of the sentence with a comma.",keys:["interjection"]},
   tag:{name:"Tag Question",explain:"A tag question added to the end of a statement is set off with a comma.",keys:["tag question","tag"]},
   dialogue:{name:"Separate Speaker from Dialogue",explain:"A comma separates a speaker tag (she said, John answered) from the quotation itself.",keys:["dialogue","speaker","quote"]},
@@ -283,53 +283,102 @@ document.getElementById('nextBtn').addEventListener('click',()=>{
   if(idx>=pool.length){ newPool(); document.getElementById('roomLabel').textContent="THE DUNGEON SHIFTS AND RESHAPES ITSELF...";}
   renderRoom();
 });
-  function grade(){
-  locked=true;
-  const s=currentSentence();
-  document.querySelectorAll('.gap').forEach(g=>g.classList.add('locked'));
-  document.querySelectorAll('.reason-row input').forEach(i=>i.disabled=true);
-  const placed = gapState.map((g,i)=>({i,type:g.type,reason:g.reason})).filter(g=>g.type);
+function grade() {
+  locked = true;
+  const s = currentSentence();
+  document.querySelectorAll('.gap').forEach(g => g.classList.add('locked'));
+  document.querySelectorAll('.reason-row input').forEach(i => i.disabled = true);
+
+  const placed = gapState.map((g, i) => ({ i, type: g.type, reason: g.reason })).filter(g => g.type);
   const expected = s.m;
-  let items=[]; let roomCorrect=true; let anyExpected=expected.length>0;
-  expected.forEach(exp=>{
+
+  let items = [];
+  let roomCorrect = true;
+  let anyExpected = expected.length > 0;
+
+  // Track matched user placements so extra/wrong placements can be evaluated cleanly
+  const matchedPlacedIndices = new Set();
+
+  expected.forEach(exp => {
     expectedTotal++;
-    const found = placed.find(p=>p.i===exp.a && p.type===exp.t);
+    const foundIdx = placed.findIndex(p => p.i === exp.a);
+    const found = foundIdx !== -1 ? placed[foundIdx] : null;
+    
+    if (found) matchedPlacedIndices.add(foundIdx);
+
     const rules = ruleList(exp.r);
-    const ruleName = rules.map(r=>r.name).join(' or ');
-    const ruleExplain = rules.map(r=>r.explain).join(' ');
-    if(found){
-      const ok = rules.some(rule => rule.keys.some(k=>norm(found.reason).includes(k)) || (norm(found.reason).length>2 && norm(found.reason)===norm(rule.name)));
-      if(ok){
-        correctTotal++;
-        items.push({ok:true,html:'<b>Correct</b> — '+(exp.t===';'?'semicolon':'comma')+' after "'+s.w[exp.a]+'": <i>'+ruleName+'</i><div class="explain">'+ruleExplain+'</div>'});
+    const ruleName = rules.map(r => r.name).join(' or ');
+    const ruleExplain = rules.map(r => r.explain).join(' ');
+
+    if (found) {
+      if (found.type !== exp.t) {
+        roomCorrect = false;
+        const correctMark = exp.t === ';' ? 'semicolon' : 'comma';
+        const placedMark = found.type === ';' ? 'semicolon' : 'comma';
+        items.push({
+          ok: false,
+          html: `Placed a <b>${placedMark}</b> after "${s.w[exp.a]}", but it needs a <b>${correctMark}</b>. Rule: <b>${ruleName}</b>.<div class="explain">${ruleExplain}</div>`
+        });
       } else {
-        roomCorrect=false;
-        items.push({ok:false,html:'Right spot, wrong reason for the '+(exp.t===';'?'semicolon':'comma')+' after "'+s.w[exp.a]+'". The rule is <b>'+ruleName+'</b>.<div class="explain">'+ruleExplain+'</div>'});
+        const ok = rules.some(rule =>
+          rule.keys.some(k => norm(found.reason).includes(k)) ||
+          (norm(found.reason).length > 2 && norm(found.reason) === norm(rule.name))
+        );
+
+        if (ok) {
+          correctTotal++;
+          items.push({
+            ok: true,
+            html: `<b>Correct</b> — ${(exp.t === ';' ? 'semicolon' : 'comma')} after "${s.w[exp.a]}": <i>${ruleName}</i><div class="explain">${ruleExplain}</div>`
+          });
+        } else {
+          roomCorrect = false;
+          items.push({
+            ok: false,
+            html: `Right spot, wrong reason for the ${(exp.t === ';' ? 'semicolon' : 'comma')} after "${s.w[exp.a]}". The rule is <b>${ruleName}</b>.<div class="explain">${ruleExplain}</div>`
+          });
+        }
       }
     } else {
-      roomCorrect=false;
-      items.push({ok:false,html:'Missed it — a '+(exp.t===';'?'semicolon':'comma')+' belongs after "'+s.w[exp.a]+'". Rule: <b>'+ruleName+'</b>.<div class="explain">'+ruleExplain+'</div>'});
+      roomCorrect = false;
+      items.push({
+        ok: false,
+        html: `Missed it — a ${(exp.t === ';' ? 'semicolon' : 'comma')} belongs after "${s.w[exp.a]}". Rule: <b>${ruleName}</b>.<div class="explain">${ruleExplain}</div>`
+      });
     }
   });
-  placed.forEach(p=>{
-    const match = expected.find(e=>e.a===p.i && e.t===p.type);
-    if(!match){
-      roomCorrect=false; expectedTotal++;
-      items.push({ok:false,html:'No punctuation belongs after "'+s.w[p.i]+'" — that mark should be removed.'});
+
+  // Flag placed marks that don't belong at all
+  placed.forEach((p, idx) => {
+    if (!matchedPlacedIndices.has(idx)) {
+      roomCorrect = false;
+      expectedTotal++;
+      items.push({
+        ok: false,
+        html: `No punctuation belongs after "${s.w[p.i]}" — that mark should be removed.`
+      });
     }
   });
-  if(!anyExpected && placed.length===0){
-    items.push({ok:true,html:'<b>Correct!</b> This sentence needs no comma or semicolon at all.'});
-    correctTotal++; expectedTotal++;
+
+  if (!anyExpected && placed.length === 0) {
+    items.push({ ok: true, html: '<b>Correct!</b> This sentence needs no comma or semicolon at all.' });
+    correctTotal++;
+    expectedTotal++;
   }
-  streak = roomCorrect ? streak+1 : 0;
-  if(depth>best){best=depth; try{localStorage.setItem('ck_best',String(best));}catch(e){}}
-  const fb=document.getElementById('feedback');
-  fb.style.display='block';
-  fb.innerHTML = (roomCorrect?'<div class="big-ok">⚔ ROOM CLEARED ⚔</div>':'<div class="big-ok" style="color:var(--blood)">THE KNIGHT STUMBLES...</div>') +
-    items.map(it=>'<div class="fitem '+(it.ok?'ok':'bad')+'"><span class="fmark '+(it.ok?'ok':'bad')+'">'+(it.ok?'✓':'✕')+'</span>'+it.html+'</div>').join("");
-  document.getElementById('submitBtn').style.display='none';
-  document.getElementById('nextBtn').style.display='inline-block';
+
+  streak = roomCorrect ? streak + 1 : 0;
+  if (depth > best) {
+    best = depth;
+    try { localStorage.setItem('ck_best', String(best)); } catch (e) {}
+  }
+
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'block';
+  fb.innerHTML = (roomCorrect ? '<div class="big-ok">⚔ ROOM CLEARED ⚔</div>' : '<div class="big-ok" style="color:var(--blood)">THE KNIGHT STUMBLES...</div>') +
+    items.map(it => '<div class="fitem ' + (it.ok ? 'ok' : 'bad') + '"><span class="fmark ' + (it.ok ? 'ok' : 'bad') + '">' + (it.ok ? '✓' : '✕') + '</span>' + it.html + '</div>').join("");
+
+  document.getElementById('submitBtn').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'inline-block';
   updateStats();
 }
 function updateStats(){
